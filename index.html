@@ -34,7 +34,7 @@
       function log(msg) { logEl.textContent += msg + "\n"; }
 
       async function getEphemeralKey() {
-  const r = await fetch("/api/session");
+  const r = await fetch("/api/session2");
 
   // erst als text lesen, dann versuchen JSON zu parsen
   const raw = await r.text();
