@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/session",
+      "destination": "https://voice-training-backend.vercel.app/api/session"
+    }
+  ]
+}
