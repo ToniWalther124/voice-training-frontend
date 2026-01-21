@@ -34,10 +34,25 @@
       function log(msg) { logEl.textContent += msg + "\n"; }
 
       async function getEphemeralKey() {
-        const r = await fetch("/api/session");
-        const data = await r.json();
-        if (!r.ok) throw new Error(data.error || "Failed to get session");
-        return data.value; // "ek_..."
+  const r = await fetch("/api/session");
+
+  // erst als text lesen, dann versuchen JSON zu parsen
+  const raw = await r.text();
+
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error("Session endpoint returned non-JSON: " + raw.slice(0, 200));
+  }
+
+  if (!r.ok) {
+    throw new Error(data.error || "Failed to get session");
+  }
+
+  // Backend kann entweder {value: "..."} direkt liefern oder {client_secret:{value:"..."}}
+  return data.value || data?.client_secret?.value;
+
       }
 
       startBtn.onclick = async () => {
