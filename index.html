@@ -9,12 +9,11 @@
       button { font-size: 16px; padding: 12px 14px; margin-right: 8px; }
       #log { white-space: pre-wrap; background: #f5f5f5; padding: 12px; border-radius: 8px; margin-top: 12px; }
       .row { display:flex; gap:8px; flex-wrap:wrap; margin: 12px 0; }
-      select, input { font-size: 16px; padding: 10px; }
     </style>
   </head>
   <body>
     <h1>Open Mic Test</h1>
-    <p>Start verbindet per WebRTC mit OpenAI Realtime und nutzt dein Backend für den ephemeren Key.</p>
+    <p>Start verbindet per WebRTC mit OpenAI Realtime und holt sich den ephemeren Key über <code>/api/session</code>.</p>
 
     <div class="row">
       <button id="start">Start</button>
@@ -22,7 +21,7 @@
     </div>
 
     <div id="log"></div>
-    <audio id="remoteAudio" autoplay></audio>
+    <audio id="remoteAudio" autoplay playsinline></audio>
 
     <script>
       const logEl = document.getElementById("log");
@@ -35,14 +34,15 @@
       function log(msg) { logEl.textContent += msg + "\n"; }
 
       async function getEphemeralKey() {
-        const r = await fetch("https://voice-training-backend.vercel.app/api/session");
+        const r = await fetch("/api/session");
         const data = await r.json();
         if (!r.ok) throw new Error(data.error || "Failed to get session");
-        return data.value; // ek_...
+        return data.value; // "ek_..."
       }
 
       startBtn.onclick = async () => {
         try {
+          logEl.textContent = "";
           startBtn.disabled = true;
           stopBtn.disabled = false;
 
@@ -51,7 +51,9 @@
 
           pc = new RTCPeerConnection();
 
-          pc.ontrack = (e) => { remoteAudio.srcObject = e.streams[0]; };
+          pc.ontrack = (e) => {
+            remoteAudio.srcObject = e.streams[0];
+          };
 
           dc = pc.createDataChannel("oai-events");
           dc.onopen = () => log("DataChannel open ✅");
@@ -84,7 +86,7 @@
           log("WebRTC connected ✅ Speak now…");
 
         } catch (err) {
-          log("ERROR: " + err.message);
+          log("ERROR: " + (err?.message || err));
           startBtn.disabled = false;
           stopBtn.disabled = true;
         }
